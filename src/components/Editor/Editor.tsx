@@ -1,15 +1,15 @@
-import { Entity } from '@/types'
-import React, { HTMLAttributes, forwardRef, useRef, useState } from 'react'
+import React, { HTMLAttributes, forwardRef, useRef } from 'react'
 import { nanoid } from 'nanoid'
-
-const SIZE = 48
+import { useActions, useEntityIds, useMode } from '@/stores'
+import { Circle } from './Circle'
 
 interface ContainerProps extends HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode
 }
+
 const Container = forwardRef<HTMLDivElement, ContainerProps>(({ children, ...props }, ref) => {
   return (
-    <div className='border border-stone-900 min-h-[500px] w-full relative' {...props} ref={ref}>
+    <div className='border border-stone-900 min-h-[500px] w-full' {...props} ref={ref}>
       {children}
     </div>
   )
@@ -17,47 +17,31 @@ const Container = forwardRef<HTMLDivElement, ContainerProps>(({ children, ...pro
 
 export function Editor() {
   const ref = useRef<HTMLDivElement>()
-  const offset = useRef({ x: 0, y: 0 })
-  const [entities, setEntities] = useState<Entity[]>([])
+  const ids = useEntityIds()
+  const mode = useMode()
+  const { addEntity, initEditor } = useActions()
 
   const init = (element: HTMLDivElement) => {
     if (!ref.current) {
       ref.current = element
+      initEditor(element)
     }
-    const { x, y } = ref.current.getBoundingClientRect()
-    offset.current = { x, y }
   }
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const { x, y } = offset.current
+    if (mode !== 'create') return
 
-    const en: Entity = {
+    addEntity({
       id: nanoid(),
-      position: { x: e.clientX - x - SIZE / 2, y: e.clientY - y - SIZE / 2 },
-    }
-
-    setEntities([...entities, en])
+      position: { x: e.clientX, y: e.clientY },
+    })
   }
+
   return (
     <Container ref={init} onClick={handleClick}>
-      {entities.map((entity) => (
-        <Circle key={entity.id} {...entity} />
+      {ids.map((id) => (
+        <Circle key={id} id={id} />
       ))}
     </Container>
-  )
-}
-
-function Circle({ position: { x, y } }: Entity) {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        backgroundColor: 'black',
-        width: SIZE,
-        height: SIZE,
-        left: x,
-        top: y,
-        borderRadius: SIZE,
-      }}></div>
   )
 }
