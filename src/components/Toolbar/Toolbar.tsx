@@ -1,34 +1,39 @@
-import { useStore } from '@/stores'
+import { useActions, useMode } from '@/stores'
 import { Mode } from '@/types'
+import { Button } from '@/components'
+import { useEffect } from 'react'
 
 export function Toolbar() {
-  const mode = useStore((s) => s.mode)
-  const { updateMode } = useStore((s) => s.actions)
+  const mode = useMode()
+  const { updateMode } = useActions()
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'c') {
+        updateMode('create')
+      } else if (e.key === 'e') {
+        updateMode('edit')
+      } else if (e.key === 'd') {
+        updateMode('delete')
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [updateMode])
 
   return (
     <div className='p-3 bg-stone-100 border border-stone-800 self-start mb-4'>
       {['create', 'edit', 'delete'].map((m) => (
-        <Button key={m} title={m} selected={m === mode} onClick={() => updateMode(m as Mode)} />
+        <Button
+          key={m}
+          variant={m === mode ? 'primary' : 'secondary'}
+          onClick={() => updateMode(m as Mode)}>
+          {m}
+        </Button>
       ))}
     </div>
-  )
-}
-
-interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
-  title: string
-  selected: boolean
-}
-
-function Button({ title, selected, ...props }: ButtonProps) {
-  return (
-    <button
-      className='px-3 py-2'
-      style={{
-        backgroundColor: selected ? 'black' : 'transparent',
-        color: selected ? 'white' : 'black',
-      }}
-      {...props}>
-      {title}
-    </button>
   )
 }

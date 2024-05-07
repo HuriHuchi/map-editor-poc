@@ -4,4 +4,11 @@ export type Position = { x: number; y: number }
 export type Entity = {
   id: string
   position: Position
+  size: number
+}
+
+export type History = {
+  historyId: string
+  entities: Entity[]
+  createdAt: string
 }

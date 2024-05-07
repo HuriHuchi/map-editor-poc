@@ -1,11 +1,17 @@
-import { Editor, Toolbar } from './components'
+import { Editor, Panel, Toolbar, History } from './components'
 
 export default function App() {
   return (
     <div className='min-h-screen'>
-      <main className='w-4/5 h-screen flex flex-col items-center justify-center mx-auto'>
+      <main className='w-4/5 h-screen flex flex-col justify-center mx-auto'>
         <Toolbar />
-        <Editor />
+        <div className='flex gap-6'>
+          <Editor />
+          <Panel />
+        </div>
+        <div>
+          <History />
+        </div>
       </main>
     </div>
   )

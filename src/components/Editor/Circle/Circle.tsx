@@ -1,8 +1,9 @@
-import { SIZE } from '../config'
-import { useActions, useEntity, useMode, useStore } from '@/stores'
+import { useActions, useEntity, useMode, useSelectedEntityId, useStore } from '@/stores'
 import { forwardRef, useEffect, useRef, useState } from 'react'
 import { isInBound } from '../helper'
 import { ExternalProps, InteralProps } from './types'
+import { cn } from '@/lib/utils'
+import { useUnselect } from '../hooks'
 
 export function Circle({ id }: ExternalProps) {
   const mode = useMode()
@@ -21,35 +22,40 @@ export function Circle({ id }: ExternalProps) {
 }
 
 const Base = forwardRef<HTMLDivElement, InteralProps>(
-  ({ position: { x, y }, style, ...props }, ref) => {
+  ({ position: { x, y }, size, style, children, ...props }, ref) => {
     return (
       <div
         ref={ref}
         style={{
           position: 'absolute',
-          width: `${SIZE}px`,
-          height: `${SIZE}px`,
-          borderRadius: `${SIZE}px`,
+          width: `${size}px`,
+          height: `${size}px`,
+          borderRadius: `${size}px`,
           backgroundColor: 'black',
-          left: `${x - SIZE / 2}px`,
-          top: `${y - SIZE / 2}px`,
+          left: `${x - size / 2}px`,
+          top: `${y - size / 2}px`,
           ...style,
         }}
-        {...props}></div>
+        {...props}>
+        {children}
+      </div>
     )
   },
 )
 
 function Editable(props: InteralProps) {
-  const { id } = props
+  const { id, size } = props
 
   const editor = useStore((s) => s.editorEl)
+  const selectedId = useSelectedEntityId()
   const [isDragging, setIsDragging] = useState(false)
 
   const frameID = useRef<number>()
   const circle = useRef<HTMLDivElement>(null)
 
-  const { moveEntity } = useActions()
+  const { moveEntity, updateSelectedEntityId } = useActions()
+
+  useUnselect({ entity: circle })
 
   useEffect(() => {
     if (!editor) return
@@ -63,8 +69,8 @@ function Editable(props: InteralProps) {
       if (circle.current) {
         const { x, y } = circle.current.getBoundingClientRect()
         const newPos = {
-          x: x + SIZE / 2,
-          y: y + SIZE / 2,
+          x: x + size / 2,
+          y: y + size / 2,
         }
         moveEntity(id, newPos)
       }
@@ -79,8 +85,8 @@ function Editable(props: InteralProps) {
       cancelAnimationFrame(frameID.current ?? 0)
       frameID.current = requestAnimationFrame(() => {
         if (!circle.current) return
-        circle.current.style.left = `${e.clientX - SIZE / 2}px`
-        circle.current.style.top = `${e.clientY - SIZE / 2}px`
+        circle.current.style.left = `${e.clientX - size / 2}px`
+        circle.current.style.top = `${e.clientY - size / 2}px`
       })
     }
 
@@ -90,7 +96,7 @@ function Editable(props: InteralProps) {
       document.removeEventListener('mousemove', handleMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [id, editor, isDragging, moveEntity])
+  }, [id, editor, isDragging, moveEntity, size])
 
   const handleMouseDown = () => setIsDragging(true)
 
@@ -98,9 +104,14 @@ function Editable(props: InteralProps) {
     <Base
       ref={circle}
       onMouseDown={handleMouseDown}
-      className='hover:border-[4px] hover:border-green-500 cursor-pointer'
-      {...props}
-    />
+      onDoubleClick={() => {
+        updateSelectedEntityId(id)
+      }}
+      className={cn(
+        'hover:border-[4px] hover:border-green-500 cursor-pointer',
+        selectedId === id && 'border-[4px] border-green-500',
+      )}
+      {...props}></Base>
   )
 }
 

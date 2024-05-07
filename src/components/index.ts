@@ -1,2 +1,6 @@
 export * from './Editor'
 export * from './Toolbar'
+export * from './Panel'
+export * from './Button'
+export * from './Row'
+export * from './History'
