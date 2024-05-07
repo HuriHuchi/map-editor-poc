@@ -14,7 +14,7 @@ const Container = forwardRef<HTMLDivElement, ContainerProps>(({ children, ...pro
   return (
     <div
       className={cn(
-        'border border-stone-900 min-h-[500px] w-[1000px]',
+        'border border-stone-900 min-h-[500px] flex-1 lg:min-w-[1000px]',
         mode === 'create' ? 'cursor-crosshair' : 'cursor-default',
       )}
       ref={ref}
