@@ -44,6 +44,7 @@ export function Editor() {
       id: nanoid(),
       position: { x: e.clientX, y: e.clientY },
       size: SIZE,
+      color: 'black',
     })
   }
 

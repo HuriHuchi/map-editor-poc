@@ -9,9 +9,7 @@ export default function App() {
           <Editor />
           <Panel />
         </div>
-        <div>
-          <History />
-        </div>
+        <History />
       </main>
     </div>
   )

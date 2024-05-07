@@ -31,7 +31,7 @@ export function Toolbar() {
           key={m}
           variant={m === mode ? 'primary' : 'secondary'}
           onClick={() => updateMode(m as Mode)}>
-          {m}
+          {m} <code>({m[0]})</code>
         </Button>
       ))}
     </div>

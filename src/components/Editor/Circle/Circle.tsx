@@ -1,9 +1,8 @@
-import { useActions, useEntity, useMode, useSelectedEntityId, useStore } from '@/stores'
+import { useActions, useEditor, useEntity, useMode, useSelectedEntityId } from '@/stores'
 import { forwardRef, useEffect, useRef, useState } from 'react'
 import { isInBound } from '../helper'
 import { ExternalProps, InteralProps } from './types'
 import { cn } from '@/lib/utils'
-import { useUnselect } from '../hooks'
 
 export function Circle({ id }: ExternalProps) {
   const mode = useMode()
@@ -22,7 +21,7 @@ export function Circle({ id }: ExternalProps) {
 }
 
 const Base = forwardRef<HTMLDivElement, InteralProps>(
-  ({ position: { x, y }, size, style, children, ...props }, ref) => {
+  ({ position: { x, y }, size, style, color, children, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -31,7 +30,7 @@ const Base = forwardRef<HTMLDivElement, InteralProps>(
           width: `${size}px`,
           height: `${size}px`,
           borderRadius: `${size}px`,
-          backgroundColor: 'black',
+          backgroundColor: color,
           left: `${x - size / 2}px`,
           top: `${y - size / 2}px`,
           ...style,
@@ -43,22 +42,21 @@ const Base = forwardRef<HTMLDivElement, InteralProps>(
   },
 )
 
-function Editable(props: InteralProps) {
+const Editable = (props: InteralProps) => {
   const { id, size } = props
 
-  const editor = useStore((s) => s.editorEl)
+  const editor = useEditor()
   const selectedId = useSelectedEntityId()
   const [isDragging, setIsDragging] = useState(false)
 
   const frameID = useRef<number>()
   const circle = useRef<HTMLDivElement>(null)
 
-  const { moveEntity, updateSelectedEntityId } = useActions()
-
-  useUnselect({ entity: circle })
+  const { moveEntity, selectEntity } = useActions()
 
   useEffect(() => {
     if (!editor) return
+
     const { top, left, bottom, right } = editor.getBoundingClientRect()
 
     const handleMouseUp = () => {
@@ -98,15 +96,15 @@ function Editable(props: InteralProps) {
     }
   }, [id, editor, isDragging, moveEntity, size])
 
-  const handleMouseDown = () => setIsDragging(true)
+  const handleMouseDown = () => {
+    setIsDragging(true)
+    selectEntity(id)
+  }
 
   return (
     <Base
       ref={circle}
       onMouseDown={handleMouseDown}
-      onDoubleClick={() => {
-        updateSelectedEntityId(id)
-      }}
       className={cn(
         'hover:border-[4px] hover:border-green-500 cursor-pointer',
         selectedId === id && 'border-[4px] border-green-500',
@@ -115,13 +113,11 @@ function Editable(props: InteralProps) {
   )
 }
 
-function Deletable(props: InteralProps) {
+const Deletable = (props: InteralProps) => {
   const { deleteEntity } = useActions()
   return (
     <Base
-      onClick={() => {
-        deleteEntity(props.id)
-      }}
+      onClick={() => deleteEntity(props.id)}
       className='hover:border-[4px] hover:border-red-500 cursor-pointer'
       {...props}></Base>
   )
