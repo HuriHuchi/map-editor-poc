@@ -56,7 +56,6 @@ const Editable = (props: InteralProps) => {
 
   useEffect(() => {
     if (!editor) return
-
     const { top, left, bottom, right } = editor.getBoundingClientRect()
 
     const handleMouseUp = () => {
@@ -64,11 +63,12 @@ const Editable = (props: InteralProps) => {
 
       setIsDragging(false)
 
+      // update final position
       if (circle.current) {
         const { x, y } = circle.current.getBoundingClientRect()
         const newPos = {
-          x: x + size / 2,
-          y: y + size / 2,
+          x: x + size / 2 - left,
+          y: y + size / 2 - top,
         }
         moveEntity(id, newPos)
       }
@@ -77,14 +77,14 @@ const Editable = (props: InteralProps) => {
     const handleMove = (e: MouseEvent) => {
       if (!isDragging) return
 
-      // bound check
+      // check boundary
       if (!isInBound({ x: e.clientX, y: e.clientY }, { top, left, bottom, right })) return
 
       cancelAnimationFrame(frameID.current ?? 0)
       frameID.current = requestAnimationFrame(() => {
         if (!circle.current) return
-        circle.current.style.left = `${e.clientX - size / 2}px`
-        circle.current.style.top = `${e.clientY - size / 2}px`
+        circle.current.style.left = `${e.clientX - size / 2 - left}px`
+        circle.current.style.top = `${e.clientY - size / 2 - top}px`
       })
     }
 

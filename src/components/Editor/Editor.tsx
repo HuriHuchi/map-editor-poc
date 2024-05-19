@@ -14,7 +14,7 @@ const Container = forwardRef<HTMLDivElement, ContainerProps>(({ children, ...pro
   return (
     <div
       className={cn(
-        'border border-stone-900 min-h-[500px] flex-1 lg:min-w-[1000px]',
+        'border border-stone-900 min-h-[500px] flex-1 lg:min-w-[1000px] relative overflow-hidden',
         mode === 'create' ? 'cursor-crosshair' : 'cursor-default',
       )}
       ref={ref}
@@ -38,11 +38,13 @@ export function Editor() {
   }
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (mode !== 'create') return
+    if (mode !== 'create' || !ref.current) return
+
+    const { x, y } = ref.current.getBoundingClientRect()
 
     addEntity({
       id: nanoid(),
-      position: { x: e.clientX, y: e.clientY },
+      position: { x: e.clientX - x, y: e.clientY - y },
       size: SIZE,
       color: 'black',
     })
