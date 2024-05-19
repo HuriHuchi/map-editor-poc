@@ -12,7 +12,7 @@ type State = {
   editorEl: HTMLDivElement | null
   selectedEntityId: string | null
   savedHistories: History[]
-  viewingHistoryId: string | null
+  currentHistoryId: string | null
 }
 
 type Actions = {
@@ -42,7 +42,7 @@ export const useStore = create<Store>()(
     editorEl: null,
     selectedEntityId: null,
     savedHistories: [],
-    viewingHistoryId: null,
+    currentHistoryId: null,
     actions: {
       initEditor: (el) => set({ editorEl: el }),
       updateMode: (mode) => set({ mode }),
@@ -77,14 +77,14 @@ export const useStore = create<Store>()(
       saveHistory: () =>
         set((state) => {
           // if editing history
-          if (state.viewingHistoryId) {
+          if (state.currentHistoryId) {
             const history = state.savedHistories.find((h) => h.historyId === state.viewingHistoryId)
             if (!history) return
 
             history.entities = state.ids.map((id) => state.entities[id])
             history.updatedAt = new Date().toISOString()
 
-            state.viewingHistoryId = null
+            state.currentHistoryId = null
           } else {
             // if new history
             const entities = state.ids.map((id) => state.entities[id])
@@ -97,7 +97,7 @@ export const useStore = create<Store>()(
         }),
       viewHistory: (id) =>
         set((state) => {
-          state.viewingHistoryId = id
+          state.currentHistoryId = id
           const history = state.savedHistories.find((h) => h.historyId === id)
 
           if (!history) {
@@ -131,6 +131,6 @@ export const useMode = () => useStore((s) => s.mode)
 export const useSelectedEntityId = () => useStore((s) => s.selectedEntityId)
 export const useEditor = () => useStore((s) => s.editorEl)
 export const useHistories = () => useStore((s) => s.savedHistories)
-export const useViewingHistoryId = () => useStore((s) => s.viewingHistoryId)
+export const useCurrentHistoryId = () => useStore((s) => s.currentHistoryId)
 
 export const useActions = () => useStore((s) => s.actions)

@@ -1,29 +1,29 @@
 import { cn, formatDate } from '@/lib/utils'
-import { useActions, useHistories, useViewingHistoryId } from '@/stores'
+import { useActions, useHistories, useCurrentHistoryId } from '@/stores'
 import type { History as IHistory } from '@/types'
 
 export function History() {
   const histories = useHistories()
-  const viewingId = useViewingHistoryId()
+  const currentHistoryId = useCurrentHistoryId()
   const { viewHistory } = useActions()
 
   const hasHistory = histories.length > 0
 
   return hasHistory ? (
     <div className='mt-6'>
-      <div className='flex mb-4 gap-2'>
+      <div className='flex mb-4 gap-2 justify-between'>
         <h1 className='text-lg font-bold'>History</h1>
-        {viewingId && (
+        {currentHistoryId ? (
           <button
             className='text-stone-500 text-sm rounded-lg p-1 hover:bg-stone-100 top-[2px] relative'
             onClick={() => viewHistory(null)}>
-            unselect
+            Unselect
           </button>
-        )}
+        ) : null}
       </div>
       <ul className='flex flex-col gap-3'>
         {histories.map((h) => (
-          <HistoryItem key={h.historyId} {...h} selected={viewingId === h.historyId} />
+          <HistoryItem key={h.historyId} {...h} selected={currentHistoryId === h.historyId} />
         ))}
       </ul>
     </div>

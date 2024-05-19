@@ -26,7 +26,7 @@ export function Toolbar() {
 
   return (
     <div className='p-3 bg-stone-100 border border-stone-800 self-start mb-4'>
-      {['create', 'edit', 'delete'].map((m) => (
+      {(['create', 'edit', 'delete'] as Mode[]).map((m) => (
         <Button
           key={m}
           variant={m === mode ? 'primary' : 'secondary'}

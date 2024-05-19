@@ -1,11 +1,12 @@
-import { useActions, useSelectedEntityId, useViewingHistoryId } from '@/stores'
+import { useActions, useEntityIds, useSelectedEntityId, useCurrentHistoryId } from '@/stores'
 import { Button, Row } from '@/components'
 import { SizeSlider } from './SizeSlider'
 import { ColorPicker } from './ColorPicker'
 
 export function Panel() {
   const selectedId = useSelectedEntityId()
-  const historyId = useViewingHistoryId()
+  const historyId = useCurrentHistoryId()
+  const ids = useEntityIds()
   const { saveHistory, deleteAllEntities } = useActions()
 
   return (
@@ -28,7 +29,7 @@ export function Panel() {
         )}
       </div>
       <div className='flex gap-2'>
-        <Button className='hover:bg-stone-800 flex-1' onClick={saveHistory}>
+        <Button className='flex-1' disabled={ids.length === 0} onClick={saveHistory}>
           Save
         </Button>
         <Button variant='secondary' onClick={deleteAllEntities}>
