@@ -29,6 +29,7 @@ type Actions = {
     changeEntitySize: (id: string, size: number) => void
     saveHistory: () => void
     viewHistory: (id: string | null) => void
+    deleteHistory: (id: string) => void
   }
 }
 
@@ -58,6 +59,11 @@ export const useStore = create<Store>()(
       deleteEntity: (id) =>
         set((state) => {
           state.ids = state.ids.filter((i) => i !== id)
+
+          if (id === state.selectedEntityId) {
+            state.selectedEntityId = null
+          }
+
           delete state.entities[id]
         }),
       deleteAllEntities: () =>
@@ -78,7 +84,7 @@ export const useStore = create<Store>()(
         set((state) => {
           // if editing history
           if (state.currentHistoryId) {
-            const history = state.savedHistories.find((h) => h.historyId === state.viewingHistoryId)
+            const history = state.savedHistories.find((h) => h.historyId === state.currentHistoryId)
             if (!history) return
 
             history.entities = state.ids.map((id) => state.entities[id])
@@ -113,6 +119,14 @@ export const useStore = create<Store>()(
 
           state.selectedEntityId = null
         }),
+      deleteHistory: (id) =>
+        set((state) => {
+          state.savedHistories = state.savedHistories.filter((h) => h.historyId !== id)
+          // if deleting history currently editing, then clear
+          if (state.currentHistoryId === id) {
+            clear(state)
+          }
+        }),
     },
   })),
 )
@@ -122,6 +136,7 @@ function clear(state: WritableDraft<Store>) {
   state.ids = []
   state.entities = {}
   state.selectedEntityId = null
+  state.currentHistoryId = null
 }
 
 // selectors
@@ -133,4 +148,5 @@ export const useEditor = () => useStore((s) => s.editorEl)
 export const useHistories = () => useStore((s) => s.savedHistories)
 export const useCurrentHistoryId = () => useStore((s) => s.currentHistoryId)
 
+// action
 export const useActions = () => useStore((s) => s.actions)

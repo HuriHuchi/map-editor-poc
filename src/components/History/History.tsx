@@ -1,6 +1,7 @@
 import { cn, formatDate } from '@/lib/utils'
 import { useActions, useHistories, useCurrentHistoryId } from '@/stores'
 import type { History as IHistory } from '@/types'
+import { Trash2 } from 'lucide-react'
 
 export function History() {
   const histories = useHistories()
@@ -36,7 +37,7 @@ function HistoryItem({
   updatedAt,
   selected,
 }: IHistory & { selected: boolean }) {
-  const { viewHistory } = useActions()
+  const { viewHistory, deleteHistory } = useActions()
   return (
     <li>
       <button
@@ -46,9 +47,24 @@ function HistoryItem({
         )}
         onClick={() => viewHistory(historyId)}>
         <p>id: {historyId}</p>
-        <div className={cn('flex gap-2 text-stone-500 text-sm', selected && 'text-white')}>
+        <div
+          className={cn(
+            'flex gap-2 text-stone-500 text-sm items-center',
+            selected && 'text-white',
+          )}>
           <p>createdAt: {formatDate(new Date(createdAt))}</p>
           {updatedAt && <p>updatedAt: {formatDate(new Date(updatedAt))}</p>}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              deleteHistory(historyId)
+            }}
+            className={cn(
+              'hover:bg-stone-100 p-1 rounded-[4px] ml-1',
+              selected && 'hover:bg-stone-700',
+            )}>
+            <Trash2 size={20} />
+          </button>
         </div>
       </button>
     </li>
