@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid'
 import { useActions, useEntityIds, useMode } from '@/stores'
 import { Circle } from './Circle'
 import { cn } from '@/lib/utils'
-import { SIZE } from './config'
+import { getDefaultEntity } from './config'
 
 interface ContainerProps extends HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode
@@ -42,12 +42,12 @@ export function Editor() {
 
     const { x, y } = ref.current.getBoundingClientRect()
 
-    addEntity({
-      id: nanoid(),
-      position: { x: e.clientX - x, y: e.clientY - y },
-      size: SIZE,
-      color: 'black',
-    })
+    addEntity(
+      getDefaultEntity({
+        id: nanoid(),
+        position: { x: e.clientX - x, y: e.clientY - y },
+      }),
+    )
   }
 
   return (

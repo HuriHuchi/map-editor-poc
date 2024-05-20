@@ -11,7 +11,7 @@ type State = {
   entities: Record<string, Entity>
   editorEl: HTMLDivElement | null
   selectedEntityId: string | null
-  savedHistories: History[]
+  histories: History[]
   currentHistoryId: string | null
 }
 
@@ -24,11 +24,11 @@ type Actions = {
     deleteEntity: (id: string) => void
     deleteAllEntities: () => void
     modifyEntity: (id: string, partial: Partial<Entity>) => void
-    // selected
     selectEntity: (id: string | null) => void
     changeEntitySize: (id: string, size: number) => void
+    // history
     saveHistory: () => void
-    viewHistory: (id: string | null) => void
+    selectHistory: (id: string | null) => void
     deleteHistory: (id: string) => void
   }
 }
@@ -42,7 +42,7 @@ export const useStore = create<Store>()(
     entities: {},
     editorEl: null,
     selectedEntityId: null,
-    savedHistories: [],
+    histories: [],
     currentHistoryId: null,
     actions: {
       initEditor: (el) => set({ editorEl: el }),
@@ -82,29 +82,22 @@ export const useStore = create<Store>()(
         }),
       saveHistory: () =>
         set((state) => {
-          // if editing history
           if (state.currentHistoryId) {
-            const history = state.savedHistories.find((h) => h.historyId === state.currentHistoryId)
-            if (!history) return
-
-            history.entities = state.ids.map((id) => state.entities[id])
-            history.updatedAt = new Date().toISOString()
-
-            state.currentHistoryId = null
+            // if editing history
+            updateHistory(state)
           } else {
             // if new history
-            const entities = state.ids.map((id) => state.entities[id])
-            const historyId = nanoid()
-            const createdAt = new Date().toISOString()
-            state.savedHistories.push({ entities, historyId, createdAt })
+            createHistory(state)
           }
 
           clear(state)
         }),
-      viewHistory: (id) =>
+      selectHistory: (id) =>
         set((state) => {
+          // update current history
           state.currentHistoryId = id
-          const history = state.savedHistories.find((h) => h.historyId === id)
+
+          const history = state.histories.find((h) => h.historyId === id)
 
           if (!history) {
             clear(state)
@@ -121,7 +114,7 @@ export const useStore = create<Store>()(
         }),
       deleteHistory: (id) =>
         set((state) => {
-          state.savedHistories = state.savedHistories.filter((h) => h.historyId !== id)
+          state.histories = state.histories.filter((h) => h.historyId !== id)
           // if deleting history currently editing, then clear
           if (state.currentHistoryId === id) {
             clear(state)
@@ -131,11 +124,29 @@ export const useStore = create<Store>()(
   })),
 )
 
-// helpers
+// helper functions
+
 function clear(state: WritableDraft<Store>) {
   state.ids = []
   state.entities = {}
   state.selectedEntityId = null
+  state.currentHistoryId = null
+}
+
+function createHistory(state: WritableDraft<Store>) {
+  const entities = state.ids.map((id) => state.entities[id])
+  const historyId = nanoid()
+  const createdAt = new Date().toISOString()
+  state.histories.push({ entities, historyId, createdAt })
+}
+
+function updateHistory(state: WritableDraft<Store>) {
+  const history = state.histories.find((h) => h.historyId === state.currentHistoryId)
+  if (!history) return
+
+  history.entities = state.ids.map((id) => state.entities[id])
+  history.updatedAt = new Date().toISOString()
+
   state.currentHistoryId = null
 }
 
@@ -145,7 +156,7 @@ export const useEntityIds = () => useStore((s) => s.ids)
 export const useMode = () => useStore((s) => s.mode)
 export const useSelectedEntityId = () => useStore((s) => s.selectedEntityId)
 export const useEditor = () => useStore((s) => s.editorEl)
-export const useHistories = () => useStore((s) => s.savedHistories)
+export const useHistories = () => useStore((s) => s.histories)
 export const useCurrentHistoryId = () => useStore((s) => s.currentHistoryId)
 
 // action

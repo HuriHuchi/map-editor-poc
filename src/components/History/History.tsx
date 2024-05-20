@@ -6,7 +6,7 @@ import { Trash2 } from 'lucide-react'
 export function History() {
   const histories = useHistories()
   const currentHistoryId = useCurrentHistoryId()
-  const { viewHistory } = useActions()
+  const { selectHistory } = useActions()
 
   const hasHistory = histories.length > 0
 
@@ -17,7 +17,7 @@ export function History() {
         {currentHistoryId ? (
           <button
             className='text-stone-500 text-sm rounded-lg p-1 hover:bg-stone-100 top-[2px] relative'
-            onClick={() => viewHistory(null)}>
+            onClick={() => selectHistory(null)}>
             Unselect
           </button>
         ) : null}
@@ -37,7 +37,7 @@ function HistoryItem({
   updatedAt,
   selected,
 }: IHistory & { selected: boolean }) {
-  const { viewHistory, deleteHistory } = useActions()
+  const { selectHistory, deleteHistory } = useActions()
   return (
     <li>
       <button
@@ -45,7 +45,7 @@ function HistoryItem({
           'px-4 py-2 bg-stone-100 rounded-md flex items-center justify-between w-full hover:bg-stone-200',
           selected && 'bg-stone-900 text-white hover:bg-stone-900',
         )}
-        onClick={() => viewHistory(historyId)}>
+        onClick={() => selectHistory(historyId)}>
         <p>id: {historyId}</p>
         <div
           className={cn(
