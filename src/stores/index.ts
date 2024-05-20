@@ -4,6 +4,7 @@ import { Entity, Mode } from '@/types'
 import { nanoid } from 'nanoid'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 type State = {
   mode: Mode
@@ -36,92 +37,102 @@ type Actions = {
 type Store = State & Actions
 
 export const useStore = create<Store>()(
-  immer((set) => ({
-    mode: 'create',
-    ids: [],
-    entities: {},
-    editorEl: null,
-    selectedEntityId: null,
-    histories: [],
-    currentHistoryId: null,
-    actions: {
-      initEditor: (el) => set({ editorEl: el }),
-      updateMode: (mode) => set({ mode }),
-      addEntity: (entity) =>
-        set((state) => {
-          state.ids.push(entity.id)
-          state.entities[entity.id] = entity
-        }),
-      moveEntity: (id, position) =>
-        set((state) => {
-          state.entities[id].position = position
-        }),
-      deleteEntity: (id) =>
-        set((state) => {
-          state.ids = state.ids.filter((i) => i !== id)
+  persist(
+    immer((set) => ({
+      mode: 'create',
+      ids: [],
+      entities: {},
+      editorEl: null,
+      selectedEntityId: null,
+      histories: [],
+      currentHistoryId: null,
+      actions: {
+        initEditor: (el) => set({ editorEl: el }),
+        updateMode: (mode) => set({ mode }),
+        addEntity: (entity) =>
+          set((state) => {
+            state.ids.push(entity.id)
+            state.entities[entity.id] = entity
+          }),
+        moveEntity: (id, position) =>
+          set((state) => {
+            state.entities[id].position = position
+          }),
+        deleteEntity: (id) =>
+          set((state) => {
+            state.ids = state.ids.filter((i) => i !== id)
 
-          if (id === state.selectedEntityId) {
+            if (id === state.selectedEntityId) {
+              state.selectedEntityId = null
+            }
+
+            delete state.entities[id]
+          }),
+        deleteAllEntities: () =>
+          set((state) => {
+            state.ids = []
+            state.entities = {}
+          }),
+        modifyEntity: (id, partial) =>
+          set((state) => {
+            state.entities[id] = { ...state.entities[id], ...partial }
+          }),
+        selectEntity: (id) => set({ selectedEntityId: id }),
+        changeEntitySize: (id, size) =>
+          set((state) => {
+            state.entities[id].size = size
+          }),
+        saveHistory: () =>
+          set((state) => {
+            if (state.currentHistoryId) {
+              // if editing history
+              updateHistory(state)
+            } else {
+              // if new history
+              createHistory(state)
+            }
+
+            clear(state)
+          }),
+        selectHistory: (id) =>
+          set((state) => {
+            // update current history
+            state.currentHistoryId = id
+
+            const history = state.histories.find((h) => h.historyId === id)
+
+            if (!history) {
+              clear(state)
+              return
+            }
+
+            state.ids = history.entities.map((e) => e.id)
+            state.entities = history.entities.reduce((acc, e) => {
+              acc[e.id] = e
+              return acc
+            }, {} as Record<string, Entity>)
+
             state.selectedEntityId = null
-          }
-
-          delete state.entities[id]
-        }),
-      deleteAllEntities: () =>
-        set((state) => {
-          state.ids = []
-          state.entities = {}
-        }),
-      modifyEntity: (id, partial) =>
-        set((state) => {
-          state.entities[id] = { ...state.entities[id], ...partial }
-        }),
-      selectEntity: (id) => set({ selectedEntityId: id }),
-      changeEntitySize: (id, size) =>
-        set((state) => {
-          state.entities[id].size = size
-        }),
-      saveHistory: () =>
-        set((state) => {
-          if (state.currentHistoryId) {
-            // if editing history
-            updateHistory(state)
-          } else {
-            // if new history
-            createHistory(state)
-          }
-
-          clear(state)
-        }),
-      selectHistory: (id) =>
-        set((state) => {
-          // update current history
-          state.currentHistoryId = id
-
-          const history = state.histories.find((h) => h.historyId === id)
-
-          if (!history) {
-            clear(state)
-            return
-          }
-
-          state.ids = history.entities.map((e) => e.id)
-          state.entities = history.entities.reduce((acc, e) => {
-            acc[e.id] = e
-            return acc
-          }, {} as Record<string, Entity>)
-
-          state.selectedEntityId = null
-        }),
-      deleteHistory: (id) =>
-        set((state) => {
-          state.histories = state.histories.filter((h) => h.historyId !== id)
-          // if deleting history currently editing, then clear
-          if (state.currentHistoryId === id) {
-            clear(state)
-          }
-        }),
+          }),
+        deleteHistory: (id) =>
+          set((state) => {
+            state.histories = state.histories.filter((h) => h.historyId !== id)
+            // if deleting history currently editing, then clear
+            if (state.currentHistoryId === id) {
+              clear(state)
+            }
+          }),
+      },
+    })),
+    {
+      name: 'editor-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([k]) => !['actions', 'editorEl'].includes(k)),
+        ),
     },
-  })),
+  ),
 )
 
 // helper functions
