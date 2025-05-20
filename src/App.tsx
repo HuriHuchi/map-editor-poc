@@ -2,8 +2,8 @@ import { Editor, Panel, Toolbar, History } from './components'
 
 export default function App() {
   return (
-    <div className='min-h-screen'>
-      <main className='w-4/5 h-screen flex flex-col justify-center mx-auto'>
+    <div className='absolute inset-0'>
+      <main className='h-full flex flex-col justify-center px-12'>
         <Toolbar />
         <div className='flex gap-6'>
           <Editor />

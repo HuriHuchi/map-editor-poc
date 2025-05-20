@@ -1,5 +1,5 @@
 import { useActions, useMode } from '@/stores'
-import { Mode } from '@/types'
+import { Mode, MODES } from '@/types'
 import { Button } from '@/components'
 import { useEffect } from 'react'
 
@@ -26,7 +26,7 @@ export function Toolbar() {
 
   return (
     <div className='p-3 bg-stone-100 border border-stone-800 self-start mb-4'>
-      {(['create', 'edit', 'delete'] as Mode[]).map((m) => (
+      {(Object.values(MODES)).map((m) => (
         <Button
           key={m}
           variant={m === mode ? 'primary' : 'secondary'}
